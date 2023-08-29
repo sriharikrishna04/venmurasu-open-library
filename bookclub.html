@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BookClub</title>
+    <style>
+        .book {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: rgb(180, 225, 230);
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        .book:hover {
+            box-shadow: 0px 10px 20px rgb(106, 147, 166);
+        }
+        
+        .image:hover {
+            box-shadow: 0px 10px 20px rgb(51, 91, 225);
+        }
+        body {
+            font-family: Martina, sans-serif;
+            background-color: #aec6e0;
+            margin: 0;
+            padding: 0;
+            font-size: 19px;
+            font-family: "Martina"; 
+            background-image: url('libr.jpg'); 
+            background-size:45cm;
+            background-repeat: no-repeat;
+            background-attachment:fixed;
+            
+            
+        }
+
+        header {
+        background-color: #dcd154;
+        color: #5181C0;
+        text-align: left;
+        padding: 0.1%;
+        font-family: "Martina", sans-serif; 
+        font-size: 30px; 
+        background-image: url('h1.jpg'); 
+        background-size:11cm;
+        background-repeat: no-repeat;
+        background-attachment:fixed;
+        background-position: top center;          
+            
+        
+            
+}
+
+
+        .container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background-color: rgb(221, 228, 181);
+            box-shadow: 0px 0px 5px rgba(5, 5, 5, 2);
+        }
+
+        #input {
+            width:20cm;
+            padding: 2rem;
+        }
+
+        #output {
+            margin-top: 1rem;
+        }
+
+        
+
+        h2 {
+            margin-top: 10;
+            font-family: "Martina", sans-serif; 
+            font-size: 30px; 
+            color: rgb(53, 51, 85);
+        }
+
+        img {
+            max-width: 150px;
+            height: auto;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>&nbsp</h1>
+    </header>
+    
+    <div class="container">
+        <input id="titleInput" placeholder="Enter a book title">
+        <button onclick="getBooks()">Get books</button>
+        <div id="titleOutput"></div>
+    </div>
+
+    <div class="container">
+        <input id="isbnInput" placeholder="Enter ISBN">
+        <button onclick="getBookByIsbn()">Get book</button>
+        <div id="isbnOutput"></div>
+    </div>
+    
+    <script>
+        function getBooks() {
+            document.getElementById('titleOutput').innerHTML = "";
+            fetch("http://openlibrary.org/search.json?q=" + document.getElementById("titleInput").value)
+                .then(response => response.json())
+                .then(data => {
+                    for (let i = 0; i < 10; i++) {
+                        document.getElementById("titleOutput").innerHTML +=
+                            "<div class='book'>" +
+                            "<h2>" + data.docs[i].title + "</h2>" +
+                            data.docs[i].author_name[0] + "<br>" +
+                            "<img src='http://covers.openlibrary.org/b/isbn/" + data.docs[i].isbn[0] + "-M.jpg'><br>" +
+                            "</div>";
+                    }
+                });
+        }
+        
+        function getBookByIsbn() {
+            const isbn = document.getElementById("isbnInput").value;
+            document.getElementById("isbnOutput").innerHTML = "";
+            
+            const base_url = "https://www.googleapis.com/books/v1/volumes";
+            const params = { q: `isbn:${isbn}` };
+
+            fetch(`${base_url}?${new URLSearchParams(params)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.items) {
+                        const bookInfo = data.items[0].volumeInfo;
+                        const title = bookInfo.title || "Title not available";
+                        const authors = bookInfo.authors || ["Author not available"];
+                        const description = bookInfo.description || "Description not available";
+
+                        const output = document.getElementById("isbnOutput");
+                        output.innerHTML = `
+                            <h2>Title: ${title}</h2>
+                            <p>Authors: ${authors.join(', ')}</p>
+                            <p>Description: ${description}</p>
+                        `;
+                    } else {
+                        const output = document.getElementById("isbnOutput");
+                        output.innerHTML = "<p>Book not found.</p>";
+                    }
+                })
+                .catch(error => {
+                    const output = document.getElementById("isbnOutput");
+                    output.innerHTML = "<p>Error occurred while making the API request.</p>";
+                });
+        }
+    </script>
+</body>
+</html>
